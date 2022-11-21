@@ -44,8 +44,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile uint16_t TimerCounterDown;
-volatile uint16_t TimerCounterUp;
+//----------  Input Capture Example ----------
+// volatile uint16_t TimerCounterDown;
+// volatile uint16_t TimerCounterUp;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,9 +62,9 @@ static void MX_NVIC_Init(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -94,8 +95,17 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_2);
+
+  //------------ Normal Timer ------------------
+  // HAL_TIM_Base_Start_IT(&htim1);
+
+  //----------  Input Capture Example ----------
+  // HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
+  // HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_2);
+
+  HAL_TIM_OC_Start(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -110,22 +120,22 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -141,9 +151,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -156,9 +165,9 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief NVIC Configuration.
-  * @retval None
-  */
+ * @brief NVIC Configuration.
+ * @retval None
+ */
 static void MX_NVIC_Init(void)
 {
   /* TIM2_IRQn interrupt configuration */
@@ -167,29 +176,59 @@ static void MX_NVIC_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+
+//-------------- Normal Timer ------------
+// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+// {
+//   if ((htim->Instance) == TIM1)
+//   {
+//     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+//   }
+// }
+//----------  Input Capture Example -----
+
+// void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+// {
+//   if (htim->Instance == TIM2)
+//   {
+//     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+//     {
+//       TimerCounterDown = __HAL_TIM_GetCompare(htim, TIM_CHANNEL_1);
+//       HAL_TIM_IC_Start_IT(htim, TIM_CHANNEL_1);
+//     }
+
+//     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+//     {
+//       TimerCounterUp = __HAL_TIM_GetCompare(htim, TIM_CHANNEL_2);
+//       HAL_TIM_IC_Start_IT(htim, TIM_CHANNEL_2);
+//     }
+//   }
+// }
+
+HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
+  static uint8_t i; // Variable for CCR modification
+
   if (htim->Instance == TIM2)
   {
-    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    if (i % 2)
     {
-      TimerCounterDown = __HAL_TIM_GetCompare(htim, TIM_CHANNEL_1);
-      HAL_TIM_IC_Start_IT(htim, TIM_CHANNEL_1);
+      __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, 1000);
     }
-
-    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+    else
     {
-      TimerCounterUp = __HAL_TIM_GetCompare(htim, TIM_CHANNEL_2);
-      HAL_TIM_IC_Start_IT(htim, TIM_CHANNEL_2);
+      __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, 6000);
     }
+    i++;
   }
 }
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -201,14 +240,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
