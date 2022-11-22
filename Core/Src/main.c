@@ -103,8 +103,12 @@ int main(void)
   // HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
   // HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_2);
 
-  HAL_TIM_OC_Start(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_2);
+  //----------- output Compare Example ---------
+  // HAL_TIM_OC_Start(&htim2, TIM_CHANNEL_1);
+  // HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_2);
+
+  // -------------  PWM ------------------
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
 
@@ -112,6 +116,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    // LED Fade mode with HAL_DELAY ;/ only for test xD
+    uint8_t i;
+    for (i = 0; i < 100; i++)
+    {
+      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, i * 10);
+      HAL_Delay(10); //!!!!!! ONLY FOR TEST
+    }
+
+    for (i = 100; i > 0; i--)
+    {
+      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, i * 10);
+      HAL_Delay(10); //!!!!!! ONLY FOR TEST
+    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -205,24 +223,25 @@ static void MX_NVIC_Init(void)
 //   }
 // }
 
-HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  static uint8_t i; // Variable for CCR modification
+//------------------ output Compare Example ---------------
+// HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
+// {
+//   static uint8_t i; // Variable for CCR modification
 
-  if (htim->Instance == TIM2)
-  {
-    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-    if (i % 2)
-    {
-      __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, 1000);
-    }
-    else
-    {
-      __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, 6000);
-    }
-    i++;
-  }
-}
+//   if (htim->Instance == TIM2)
+//   {
+//     HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+//     if (i % 2)
+//     {
+//       __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, 1000);
+//     }
+//     else
+//     {
+//       __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, 6000);
+//     }
+//     i++;
+//   }
+// }
 /* USER CODE END 4 */
 
 /**
